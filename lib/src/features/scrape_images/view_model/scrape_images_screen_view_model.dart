@@ -23,28 +23,29 @@ class ScrapeImages extends _$ScrapeImages {
   Future<void> scrapeImages(String url) async {
     state = const AsyncLoading();
     List<String> imgUrls = [];
-    try {
-      for (int i = 1; i < 300; i++) {
-        final response = await http.get(Uri.parse("$url#$i"));
 
-        if (response.statusCode != 200) {
-          // state = AsyncError("error", StackTrace.current);
-          throw (Exception("end"));
-        }
+    // try {
+    //   for (int i = 1; i < 300; i++) {
+    //     final response = await http.get(Uri.parse("$url#$i"));
 
-        Document document = parser.parse(response.body);
-        List<Element> imgTags = document.getElementsByTagName("img");
+    //     if (response.statusCode != 200) {
+    //       // state = AsyncError("error", StackTrace.current);
+    //       throw (Exception("end"));
+    //     }
 
-        imgUrls.addAll(
-          imgTags
-              .map((img) => img.attributes["src"] ?? "")
-              .where((src) => src.isNotEmpty && isImageExtension(src)),
-        );
-      }
-    } catch (e) {
-      state = AsyncData(imgUrls);
-      // state = AsyncError(e, StackTrace.current);
-    }
+    //     Document document = parser.parse(response.body);
+    //     List<Element> imgTags = document.getElementsByTagName("img");
+
+    //     imgUrls.addAll(
+    //       imgTags
+    //           .map((img) => img.attributes["src"] ?? "")
+    //           .where((src) => src.isNotEmpty && isImageExtension(src)),
+    //     );
+    //   }
+    // } catch (e) {
+    //   state = AsyncData(imgUrls);
+    //   // state = AsyncError(e, StackTrace.current);
+    // }
   }
 }
 
