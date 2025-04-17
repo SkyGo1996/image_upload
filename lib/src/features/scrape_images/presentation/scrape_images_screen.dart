@@ -45,6 +45,7 @@ class _ScrapeImagesScreenState extends ConsumerState<ScrapeImagesScreen> {
                       ..._imageUrls,
                       ...urls,
                     }.where((url) => isImageExtension(url)).toList();
+                _isLoading = false;
               });
             },
           );
@@ -66,7 +67,6 @@ class _ScrapeImagesScreenState extends ConsumerState<ScrapeImagesScreen> {
     const downloadSuccessfulSnackBar = SnackBar(
       content: Text("Download Successful"),
     );
-    final scrapeImages = ref.watch(scrapeImagesProvider);
     final downloadImages = ref.watch(downloadImagesProvider);
     ref.listen(downloadImagesProvider, (previous, next) {
       if (previous != null && previous.isLoading && next is AsyncData) {
@@ -127,14 +127,15 @@ class _ScrapeImagesScreenState extends ConsumerState<ScrapeImagesScreen> {
                       ),
                 );
               },
-              icon:
-                  downloadImages is AsyncLoading
-                      ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(),
-                      )
-                      : Icon(Icons.download),
+              icon: downloadImages.maybeWhen(
+                loading:
+                    () => SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(),
+                    ),
+                orElse: () => Icon(Icons.download),
+              ),
             ),
 
           if (_imageUrls.isNotEmpty)
@@ -196,13 +197,12 @@ class _ScrapeImagesScreenState extends ConsumerState<ScrapeImagesScreen> {
 
                       // TODO create for loop and load request
 
-                      _controller.loadRequest(
+                      await _controller.loadRequest(
                         Uri.parse(_textEditingController.text),
                       );
 
                       setState(() {
                         selectedImageUrlsToDownload = [];
-                        _isLoading = false;
                       });
                     }
                   },
@@ -269,54 +269,70 @@ class _ScrapeImagesScreenState extends ConsumerState<ScrapeImagesScreen> {
             //       ),
             // ),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: MediaQuery.sizeOf(context).width ~/ 150,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      if (selectedImageUrlsToDownload.any(
-                        (url) => url == _imageUrls[index],
-                      )) {
-                        setState(() {
-                          selectedImageUrlsToDownload.remove(_imageUrls[index]);
-                        });
-                      } else {
-                        setState(() {
-                          selectedImageUrlsToDownload.add(_imageUrls[index]);
-                        });
-                      }
-                    },
-                    child: Stack(
-                      alignment: AlignmentDirectional.topEnd,
-                      children: [
-                        Image.network(_imageUrls[index]),
-                        if (selectedImageUrlsToDownload.any(
-                          (url) => url == _imageUrls[index],
-                        ))
-                          Icon(
-                            Icons.check_circle,
-                            size: 30,
-                            color: Colors.green,
-                          ),
-                      ],
-                    ),
-                  );
-                },
-                itemCount: _imageUrls.length,
-              ),
+              child:
+                  _imageUrls.isNotEmpty
+                      ? GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                              MediaQuery.sizeOf(context).width ~/ 150,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              if (selectedImageUrlsToDownload.any(
+                                (url) => url == _imageUrls[index],
+                              )) {
+                                setState(() {
+                                  selectedImageUrlsToDownload.remove(
+                                    _imageUrls[index],
+                                  );
+                                });
+                              } else {
+                                setState(() {
+                                  selectedImageUrlsToDownload.add(
+                                    _imageUrls[index],
+                                  );
+                                });
+                              }
+                            },
+                            child: Stack(
+                              alignment: AlignmentDirectional.topEnd,
+                              children: [
+                                Image.network(_imageUrls[index]),
+                                if (selectedImageUrlsToDownload.any(
+                                  (url) => url == _imageUrls[index],
+                                ))
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 30,
+                                    color: Colors.green,
+                                  ),
+                                if ((index == _imageUrls.length - 1 ||
+                                        _imageUrls.isEmpty) &&
+                                    _isLoading)
+                                  SizedBox(
+                                    width: 30,
+                                    height: 30,
+                                    child: CircularProgressIndicator(),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                        itemCount: _imageUrls.length,
+                      )
+                      : _isLoading
+                      ? Center(
+                        child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                      : Center(child: Text("No images")),
             ),
-            if (_isLoading)
-              Center(
-                child: SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: CircularProgressIndicator(),
-                ),
-              ),
           ],
         ),
       ),

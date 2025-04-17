@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:html/dom.dart';
-import "package:html/parser.dart" as parser;
-import 'package:http/http.dart' as http;
 import 'package:image_upload_test/src/features/scrape_images/data/scrape_images_repository.dart';
 import 'package:image_upload_test/src/utils/image_utils.dart';
 import 'package:path/path.dart' as path;
@@ -52,7 +49,7 @@ class ScrapeImages extends _$ScrapeImages {
 @riverpod
 class DownloadImages extends _$DownloadImages {
   @override
-  FutureOr<void> build() {}
+  FutureOr build() => AsyncData(null);
 
   Future<void> downloadImages(
     List<String> imageUrls,
@@ -111,9 +108,9 @@ class DownloadImages extends _$DownloadImages {
           }
         }
       }
-      state = AsyncValue.data(null);
+      state = AsyncData(null);
     } catch (e) {
-      state = AsyncValue.error(Exception(e), StackTrace.current);
+      state = AsyncError(Exception(e), StackTrace.current);
     }
   }
 }
